@@ -48,7 +48,7 @@ A java 8 function, with an `ItemStack` as its input and an `IBookWrapper` as its
 If you want to add page scrolling, you should override the `left()` and `right()` methods. These methods should switch the page, either to the left or right of the current page.
 
 #### Creating a Custom Wrapper
-`IBookWrapper` is an interface added by Book Display that contains rendering methods that are invoked when drawing the ingame gui. The class contains two extra methods you need to override, apart from `left()` and `right()`.
+`IBookWrapper` is an interface that contains rendering methods that are invoked when drawing the ingame gui. The class contains two extra methods you need to override, apart from `left()` and `right()`.
 
 ##### draw(side, partialTicks)
 This method should draw the gui on the left or right side of the screen as specified by the `side` parameter. If you want to use rendering methods from the vanilla `Gui` class, you can simply make your wrapper extend `Gui`.
