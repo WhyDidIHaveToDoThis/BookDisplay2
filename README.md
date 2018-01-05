@@ -14,7 +14,7 @@ Book Display natively supports:
  - Any book from Mantle (e.g. _Materials and You_ from Tinkers' Construct)
 
 ### Adding Your Own Book
-To add your own book gui to the Book Display registry you first need to add Book Display to your dev enviroment as a dependency.
+To add your own book gui to the Book Display registry, you first need to add Book Display to your dev enviroment as a dependency.
  
 ```groovy
 repositories {
