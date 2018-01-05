@@ -31,7 +31,7 @@ dependencies {
 }
 ```
 #### Regisering Your GUI
-Next, you register your book gui with `BookDispneed tolay.register(guiClass, predicate, factory);`
+Next, you register your book gui with `BookDisplay.register(guiClass, predicate, factory);`
 
 ##### guiClass
 The java class of your book gui.
