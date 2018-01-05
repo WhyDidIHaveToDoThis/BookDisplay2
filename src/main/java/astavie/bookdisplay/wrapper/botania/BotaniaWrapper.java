@@ -11,7 +11,7 @@ import vazkii.botania.common.item.ItemLexicon;
 public class BotaniaWrapper extends BookWrapper<GuiLexicon> {
 
 	private BotaniaWrapper() {
-		super(GuiLexicon.currentOpenLexicon);
+		super(GuiLexicon.currentOpenLexicon, false);
 	}
 
 	public static void register() {

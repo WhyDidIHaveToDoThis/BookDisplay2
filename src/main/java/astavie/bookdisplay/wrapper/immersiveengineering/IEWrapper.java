@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 public class IEWrapper extends BookWrapper<GuiManual> {
 
 	private IEWrapper() {
-		super(ManualHelper.getManual().getGui());
+		super(ManualHelper.getManual().getGui(), false);
 	}
 
 	public static void register() {

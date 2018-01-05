@@ -11,7 +11,7 @@ import net.minecraft.util.EnumHandSide;
 public class VanillaWrapper extends BookWrapper<GuiScreenBook> {
 
 	public VanillaWrapper(ItemStack book) {
-		super(new GuiScreenBook(Minecraft.getMinecraft().player, book, book.getItem() == Items.WRITABLE_BOOK));
+		super(new GuiScreenBook(Minecraft.getMinecraft().player, book, book.getItem() == Items.WRITABLE_BOOK), false);
 	}
 
 	@Override

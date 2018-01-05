@@ -17,7 +17,7 @@ public class MantleWrapper extends BookWrapper<GuiMantleBook> {
 	private static final Map<Item, BookData> registry = new HashMap<>();
 
 	private MantleWrapper(ItemStack stack) {
-		super(new GuiMantleBook(registry.get(stack.getItem()), stack));
+		super(new GuiMantleBook(registry.get(stack.getItem()), stack), false);
 	}
 
 	public static void register() {
