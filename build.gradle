@@ -1,0 +1,156 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'maven-publish'
+
+ext {
+    if (mc_minor == "0") {
+        mc_version = "1.${mc_major}"
+    } else {
+        mc_version = "1.${mc_major}.${mc_minor}"
+    }
+}
+
+version = "${mc_version}-${major}.${minor}.${patch}"
+group = mod_id
+archivesBaseName = "${mod_name.replaceAll(' ','')}"
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "${mc_version}-${forge_version}"
+    runDir = "run"
+    mappings = "snapshot_20170624"
+}
+
+repositories {
+    maven { url "http://dvs1.progwml6.com/files/maven" }
+    maven { url "http://maven.blamejared.com/" }
+    maven { url "http://maven.thiakil.com" }
+    flatDir { dirs 'lib' }
+}
+
+dependencies {
+    // Mod APIs
+    compile "slimeknights.mantle:Mantle:1.${mc_major}+:deobf"
+    compile "com.azanor.baubles:Baubles:1.${mc_major}+:deobf"
+    compile name: "BiblioCraft-2.4.3"
+    compile name: "Botania-352"
+
+    deobfCompile "blusunrize:ImmersiveEngineering:0.${mc_major}+"
+
+    runtime "slimeknights:TConstruct:1.${mc_major}+@jar"
+    runtime "mezz.jei:jei_${mc_version}:+"
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.info'
+        include '**/*.properties'
+
+        expand ([
+        	'version': "${major}.${minor}.${patch}",
+        	'mcversion': mc_version,
+        	'modid': mod_id,
+        	'name': mod_name,
+        	'forge': forge_version
+        ])
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude '**/*.info'
+        exclude '**/*.properties'
+    }
+}
+
+jar {
+    manifest {
+        attributes 'FMLAT': "${mod_id}_at.cfg"
+    }
+    finalizedBy reobfJar
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'deobf'
+    manifest {
+        attributes 'FMLAT': '${mod_id}_at.cfg'
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId "astavie"
+            artifactId mod_id
+            version project.version
+
+            artifact jar
+            artifact deobfJar
+            artifact sourcesJar
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url "/home/arie/Code/Maven"
+        }
+    }
+}
+
+task pushMaven(type: Exec) {
+    workingDir '/home/arie/Code/Maven'
+    commandLine 'bash', 'push.sh', "astavie/${mod_id}", "Maven, ${mod_name}, ${project.version}"
+}
+
+task increaseVersion {
+	doLast {
+		def variable = 'patch'
+
+		if (project.hasProperty('variable')) {
+			def tmp = project.getProperty('variable')
+			if (tmp == 'major' || tmp == 'minor') {
+				variable = tmp
+			}
+		}
+
+		def file = file('gradle.properties')
+		if (file.canRead()) {
+			def Properties versions = new Properties()
+			versions.load(new FileInputStream(file))
+
+			def version = versions[variable].toInteger() + 1
+			versions[variable] = version.toString()
+
+			if (variable != 'patch') {
+				versions['patch'] = '0'
+
+				if (variable != 'minor') {
+					versions['minor'] = '0'
+				}
+			}
+
+			versions.store(file.newWriter(), null)
+		}
+	}
+}
+
+pushMaven.dependsOn publish
