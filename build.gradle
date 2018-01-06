@@ -38,6 +38,7 @@ repositories {
     maven { url "http://dvs1.progwml6.com/files/maven" }
     maven { url "http://maven.blamejared.com/" }
     maven { url "http://maven.thiakil.com" }
+    maven { url "https://raw.githubusercontent.com/Astavie/Astavie.github.io/mvn-repo/" }
     flatDir { dirs 'lib' }
 }
 
@@ -52,6 +53,7 @@ dependencies {
 
     runtime "slimeknights:TConstruct:1.${mc_major}+@jar"
     runtime "mezz.jei:jei_${mc_version}:+"
+    runtime "astavie:ftgu:${mc_version}+"
 }
 
 processResources {

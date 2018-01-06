@@ -2,7 +2,7 @@
 var=$1
 
 if [ "$var" == "" ]; then
-	echo 'What version variable should be increased? (major, api, minor, patch)'
+	echo 'What version variable should be increased? (major, minor, patch)'
 	echo -n '> '
 	read var
 fi
