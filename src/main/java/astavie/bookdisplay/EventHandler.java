@@ -25,12 +25,16 @@ public class EventHandler {
 	private int cachedHeight;
 
 	private void mainhand() {
+		if (mainhand != null)
+			mainhand.getRight().close();
+
 		EntityPlayer player = Minecraft.getMinecraft().player;
 		ItemStack stack = player.getHeldItemMainhand();
 		IBookWrapper wrapper = BookDisplay.find(stack);
+
 		if (wrapper != null) {
 			ScaledResolution size = new ScaledResolution(Minecraft.getMinecraft());
-			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight());
+			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
 			mainhand = Pair.of(stack, wrapper);
 		} else {
 			mainhand = null;
@@ -38,12 +42,16 @@ public class EventHandler {
 	}
 
 	private void offhand() {
+		if (offhand != null)
+			offhand.getRight().close();
+
 		EntityPlayer player = Minecraft.getMinecraft().player;
 		ItemStack stack = player.getHeldItemOffhand();
 		IBookWrapper wrapper = BookDisplay.find(stack);
+
 		if (wrapper != null) {
 			ScaledResolution size = new ScaledResolution(Minecraft.getMinecraft());
-			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight());
+			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand().opposite());
 			offhand = Pair.of(stack, wrapper);
 		} else {
 			offhand = null;
@@ -54,6 +62,11 @@ public class EventHandler {
 	public void onKey(InputEvent.KeyInputEvent event) {
 		if (BookDisplay.key.isPressed()) {
 			if (enabled) {
+				if (mainhand != null)
+					mainhand.getRight().close();
+				if (offhand != null)
+					offhand.getRight().close();
+
 				mainhand = null;
 				offhand = null;
 			} else {
@@ -96,14 +109,14 @@ public class EventHandler {
 			if (mainhand != null) {
 				GlStateManager.pushMatrix();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
-					mainhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight());
+					mainhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
 				mainhand.getRight().draw(player.getPrimaryHand(), event.getPartialTicks());
 				GlStateManager.popMatrix();
 			}
 			if (offhand != null) {
 				GlStateManager.pushMatrix();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
-					offhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight());
+					offhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand().opposite());
 				offhand.getRight().draw(player.getPrimaryHand().opposite(), event.getPartialTicks());
 				GlStateManager.popMatrix();
 			}

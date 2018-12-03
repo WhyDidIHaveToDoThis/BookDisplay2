@@ -1,17 +1,17 @@
 package astavie.bookdisplay.wrapper.mantle;
 
 import astavie.bookdisplay.Reference;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.item.ItemStack;
-import net.minecraft.stats.StatisticsManager;
 import net.minecraft.util.ResourceLocation;
 import slimeknights.mantle.client.book.BookHelper;
+import slimeknights.mantle.client.book.BookLoader;
 import slimeknights.mantle.client.book.data.BookData;
+import slimeknights.mantle.client.book.data.PageData;
 import slimeknights.mantle.client.gui.book.GuiBook;
 import slimeknights.mantle.client.gui.book.element.BookElement;
 
@@ -35,14 +35,15 @@ public class GuiMantleBook extends GuiScreen {
 	private final ArrayList<BookElement> elements = new ArrayList<>();
 
 	private final GuiBook gui;
+	private final ItemStack item;
 
 	private int page;
 
 	public GuiMantleBook(BookData book, ItemStack item) {
-		StatisticsManager stats = Minecraft.getMinecraft().player.getStatFileWriter();
 		this.book = book;
-		this.gui = new GuiBook(book, stats, item);
-		this.page = book.findPageNumber(BookHelper.getSavedPage(item), stats);
+		this.gui = new GuiBook(book, item);
+		this.item = item;
+		this.page = book.findPageNumber(BookHelper.getSavedPage(item), gui.advancementCache);
 		if (page < 0)
 			page = 0;
 		reload();
@@ -112,7 +113,7 @@ public class GuiMantleBook extends GuiScreen {
 	}
 
 	public void right() {
-		if (page < book.getPageCount(Minecraft.getMinecraft().player.getStatFileWriter()) - 1) {
+		if (page < book.getPageCount(gui.advancementCache) - 1) {
 			page++;
 			reload();
 		}
@@ -120,9 +121,16 @@ public class GuiMantleBook extends GuiScreen {
 
 	private void reload() {
 		elements.clear();
-		book.findPage(page, Minecraft.getMinecraft().player.getStatFileWriter()).content.build(book, elements, true);
+		book.findPage(page, gui.advancementCache).content.build(book, elements, true);
 		for (BookElement element : elements)
 			element.parent = gui;
+	}
+
+	@Override
+	public void onGuiClosed() {
+		PageData page = book.findPage(this.page - 1, gui.advancementCache);
+		if (page != null && page.parent != null)
+			BookLoader.updateSavedPage(mc.player, item, page.parent.name + "." + page.name);
 	}
 
 }

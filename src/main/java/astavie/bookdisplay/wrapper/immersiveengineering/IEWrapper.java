@@ -8,6 +8,8 @@ import blusunrize.immersiveengineering.common.items.IEItemInterfaces;
 import blusunrize.lib.manual.ManualInstance;
 import blusunrize.lib.manual.gui.GuiManual;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.util.EnumHandSide;
 
 public class IEWrapper extends BookWrapper<GuiManual> {
 
@@ -37,8 +39,8 @@ public class IEWrapper extends BookWrapper<GuiManual> {
 	}
 
 	@Override
-	public void setSize(int width, int height) {
-		super.setSize(width, height);
+	public void setSize(int width, int height, EnumHandSide side) {
+		super.setSize(width, height, side);
 		initGui();
 	}
 
@@ -48,6 +50,8 @@ public class IEWrapper extends BookWrapper<GuiManual> {
 			Minecraft.getMinecraft().gameSettings.guiScale = 2;
 		book.initGui();
 		Minecraft.getMinecraft().gameSettings.guiScale = scale;
+		for (GuiButton button : book.buttonList)
+			button.visible = false;
 	}
 
 }

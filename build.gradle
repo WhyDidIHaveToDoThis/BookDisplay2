@@ -31,29 +31,30 @@ compileJava {
 minecraft {
     version = "${mc_version}-${forge_version}"
     runDir = "run"
-    mappings = "snapshot_20170624"
+    mappings = "stable_39"
 }
 
 repositories {
     maven { url "http://dvs1.progwml6.com/files/maven" }
     maven { url "http://maven.blamejared.com/" }
     maven { url "http://maven.thiakil.com" }
-    maven { url "https://raw.githubusercontent.com/Astavie/Astavie.github.io/mvn-repo/" }
-    flatDir { dirs 'lib' }
+    maven { url "http://maven.cil.li/" }
 }
 
 dependencies {
     // Mod APIs
-    compile "slimeknights.mantle:Mantle:1.${mc_major}+:deobf"
-    compile "com.azanor.baubles:Baubles:1.${mc_major}+:deobf"
-    compile name: "BiblioCraft-2.4.3"
-    compile name: "Botania-352"
+    compile fileTree(dir: 'lib', include: ['*.jar'])
 
+    deobfCompile "slimeknights.mantle:Mantle:1.${mc_major}+"
+    deobfCompile "com.azanor.baubles:Baubles:1.${mc_major}+"
     deobfCompile "blusunrize:ImmersiveEngineering:0.${mc_major}+"
 
-    runtime "slimeknights:TConstruct:1.${mc_major}+@jar"
+    deobfCompile "li.cil.oc:OpenComputers:MC${mc_version}+"
+    deobfCompile "li.cil.tis3d:TIS-3D:MC${mc_version}+"
+
+    // Runtime
+    runtime "slimeknights:TConstruct:${mc_version}+@jar"
     runtime "mezz.jei:jei_${mc_version}:+"
-    runtime "astavie:ftgu:${mc_version}+"
 }
 
 processResources {

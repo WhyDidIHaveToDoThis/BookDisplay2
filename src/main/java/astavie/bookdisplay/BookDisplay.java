@@ -6,6 +6,8 @@ import astavie.bookdisplay.wrapper.botania.BotaniaWrapper;
 import astavie.bookdisplay.wrapper.immersiveengineering.IEWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
 import astavie.bookdisplay.wrapper.minecraft.VanillaWrapper;
+import astavie.bookdisplay.wrapper.opencomputers.OCWrapper;
+import astavie.bookdisplay.wrapper.tis3d.TIS3DWrapper;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiScreenBook;
 import net.minecraft.client.settings.KeyBinding;
@@ -42,6 +44,8 @@ public class BookDisplay {
 	}
 
 	static IBookWrapper find(ItemStack stack) {
+		if (stack.isEmpty())
+			return null;
 		for (Map.Entry<Predicate<ItemStack>, Function<ItemStack, IBookWrapper>> entry : registry.entrySet())
 			if (entry.getKey().test(stack))
 				return entry.getValue().apply(stack);
@@ -51,7 +55,7 @@ public class BookDisplay {
 	static boolean contains(GuiScreen book) {
 		if (books.contains(book.getClass()))
 			return true;
-		else for (Class<?> clazz : books)
+		for (Class<?> clazz : books)
 			if (clazz.isInstance(book))
 				return true;
 		return false;
@@ -79,6 +83,10 @@ public class BookDisplay {
 			IEWrapper.register();
 		if (Loader.isModLoaded("mantle"))
 			MantleWrapper.register();
+		if (Loader.isModLoaded("opencomputers"))
+			OCWrapper.register();
+		if (Loader.isModLoaded("tis3d"))
+			TIS3DWrapper.register();
 	}
 
 }

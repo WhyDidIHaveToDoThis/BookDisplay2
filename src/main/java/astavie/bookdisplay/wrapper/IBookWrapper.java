@@ -10,6 +10,8 @@ public interface IBookWrapper {
 
 	void right();
 
-	void setSize(int width, int height);
+	void close();
+
+	void setSize(int width, int height, EnumHandSide side);
 
 }

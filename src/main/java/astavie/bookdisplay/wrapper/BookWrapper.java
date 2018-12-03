@@ -1,11 +1,18 @@
 package astavie.bookdisplay.wrapper;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.EnumHandSide;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class BookWrapper<T extends GuiScreen> implements IBookWrapper {
+
+	private static final Method keyTyped = ReflectionHelper.findMethod(GuiScreen.class, "keyTyped", "func_73869_a", char.class, int.class);
 
 	protected final T book;
 	private final boolean init;
@@ -37,13 +44,24 @@ public class BookWrapper<T extends GuiScreen> implements IBookWrapper {
 	}
 
 	@Override
-	public void setSize(int width, int height) {
+	public void close() {
+		try {
+			keyTyped.invoke(book, '\033', 1);
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		book.onGuiClosed();
+	}
+
+	@Override
+	public void setSize(int width, int height, EnumHandSide side) {
 		this.width = width / 2;
 		this.height = height;
 		book.setGuiSize(this.width, this.height);
 		if (init) {
 			book.initGui();
-			book.buttonList.clear();
+			for (GuiButton button : book.buttonList)
+				button.visible = false;
 		}
 	}
 

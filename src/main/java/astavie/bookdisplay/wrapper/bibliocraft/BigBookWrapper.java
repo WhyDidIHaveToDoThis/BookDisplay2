@@ -7,7 +7,7 @@ import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class BigBookWrapper extends BiblioCraftWrapper<GuiBigBook> {
 
-	public BigBookWrapper(ItemStack stack) {
+	BigBookWrapper(ItemStack stack) {
 		super(new GuiBigBook(stack, true, 0, 0, 0, Minecraft.getMinecraft().player.getDisplayNameString()));
 		ReflectionHelper.setPrivateValue(GuiBigBook.class, book, true, "signed");
 	}

@@ -3,6 +3,8 @@ package astavie.bookdisplay.wrapper.botania;
 import astavie.bookdisplay.BookDisplay;
 import astavie.bookdisplay.wrapper.BookWrapper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.util.EnumHandSide;
 import vazkii.botania.client.core.handler.PersistentVariableHelper;
 import vazkii.botania.client.gui.lexicon.GuiLexicon;
 import vazkii.botania.client.gui.lexicon.GuiLexiconEntry;
@@ -43,14 +45,16 @@ public class BotaniaWrapper extends BookWrapper<GuiLexicon> {
 	}
 
 	@Override
-	public void setSize(int width, int height) {
-		super.setSize(width, height);
+	public void setSize(int width, int height, EnumHandSide side) {
+		super.setSize(width, height, side);
 		int scale = Minecraft.getMinecraft().gameSettings.guiScale;
 		int persistentScale = Math.min(PersistentVariableHelper.lexiconGuiScale, GuiLexicon.getMaxAllowedScale());
 		if (persistentScale > 0 && persistentScale != Minecraft.getMinecraft().gameSettings.guiScale)
 			Minecraft.getMinecraft().gameSettings.guiScale = persistentScale;
 		book.initGui();
 		Minecraft.getMinecraft().gameSettings.guiScale = scale;
+		for (GuiButton button : book.buttonList)
+			button.visible = false;
 	}
 
 }

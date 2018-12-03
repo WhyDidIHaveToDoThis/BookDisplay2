@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 public class SlottedBookWrapper extends GuiSlottedBook {
 
-	public SlottedBookWrapper(ItemStack item) {
+	SlottedBookWrapper(ItemStack item) {
 		super(Minecraft.getMinecraft().player.inventory, item, true, 0, 0, 0);
 		ReflectionHelper.setPrivateValue(GuiSlottedBook.class, this, item, "book");
 		getNBTTitleAndLines();

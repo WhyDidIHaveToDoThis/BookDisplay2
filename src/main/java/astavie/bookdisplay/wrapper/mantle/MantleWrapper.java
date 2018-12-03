@@ -3,7 +3,6 @@ package astavie.bookdisplay.wrapper.mantle;
 import astavie.bookdisplay.BookDisplay;
 import astavie.bookdisplay.wrapper.BookWrapper;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import slimeknights.mantle.client.book.data.BookData;
@@ -14,19 +13,26 @@ import java.util.Map;
 
 public class MantleWrapper extends BookWrapper<GuiMantleBook> {
 
-	private static final Map<Item, BookData> registry = new HashMap<>();
+	private static final Map<ItemStack, BookData> registry = new HashMap<>();
 
 	private MantleWrapper(ItemStack stack) {
-		super(new GuiMantleBook(registry.get(stack.getItem()), stack), false);
+		super(new GuiMantleBook(get(stack), stack), false);
+	}
+
+	private static BookData get(ItemStack stack) {
+		for (Map.Entry<ItemStack, BookData> entry : registry.entrySet())
+			if (entry.getKey().getItem() == stack.getItem() && entry.getKey().getMetadata() == stack.getMetadata())
+				return entry.getValue();
+		return null;
 	}
 
 	public static void register() {
-		BookDisplay.register(GuiBook.class, item -> registry.containsKey(item.getItem()), MantleWrapper::new);
+		BookDisplay.register(GuiBook.class, item -> get(item) != null, MantleWrapper::new);
 	}
 
 	public static void register(GuiScreen screen) {
 		if (screen instanceof GuiBook)
-			registry.put(((ItemStack) ReflectionHelper.getPrivateValue(GuiBook.class, (GuiBook) screen, "item")).getItem(), ((GuiBook) screen).book);
+			registry.put(ReflectionHelper.getPrivateValue(GuiBook.class, (GuiBook) screen, "item"), ((GuiBook) screen).book);
 	}
 
 	@Override
