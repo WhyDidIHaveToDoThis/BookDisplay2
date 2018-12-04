@@ -12,6 +12,10 @@ Book Display natively supports:
  - _Lexica Botania_ from Botania
  - _Engineer's Manual_ from Immersive Engineering
  - Any book from Mantle (e.g. _Materials and You_ from Tinkers' Construct)
+ - _OpenComputers Manual_ from OpenComputers
+ - TIS-3D
+   - TIS-3D Reference Manual
+   - Code Bible
 
 ### Adding Your Own Book
 To add your own book gui to the Book Display registry, you first need to add Book Display to your dev enviroment as a dependency.
