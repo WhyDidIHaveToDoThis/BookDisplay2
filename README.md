@@ -57,5 +57,5 @@ If you want to add page scrolling, you should override the `left()` and `right()
 ##### draw(side, partialTicks)
 This method should draw the gui on the left or right side of the screen as specified by the `side` parameter. If you want to use rendering methods from the vanilla `Gui` class, you can simply make your wrapper extend `Gui`.
 
-##### setSize(width, height)
+##### setSize(width, height, side)
 Invoked when the window resolution changes.
