@@ -34,7 +34,7 @@ dependencies {
     compile 'astavie:bookdisplay:<version>:deobf'
 }
 ```
-#### Regisering Your GUI
+#### Registering Your GUI
 Next, you register your book gui with `BookDisplay.register(guiClass, predicate, factory);`
 
 ##### guiClass
