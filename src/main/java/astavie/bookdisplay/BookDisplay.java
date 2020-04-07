@@ -7,6 +7,7 @@ import astavie.bookdisplay.wrapper.immersiveengineering.IEWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
 import astavie.bookdisplay.wrapper.minecraft.VanillaWrapper;
 import astavie.bookdisplay.wrapper.opencomputers.OCWrapper;
+import astavie.bookdisplay.wrapper.patchouli.PatchouliWrapper;
 import astavie.bookdisplay.wrapper.tis3d.TIS3DWrapper;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiScreenBook;
@@ -87,6 +88,8 @@ public class BookDisplay {
 			OCWrapper.register();
 		if (Loader.isModLoaded("tis3d"))
 			TIS3DWrapper.register();
+		if (Loader.isModLoaded("patchouli"))
+			PatchouliWrapper.register();
 	}
 
 }

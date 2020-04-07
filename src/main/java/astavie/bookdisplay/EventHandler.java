@@ -127,11 +127,23 @@ public class EventHandler {
 
 	@SubscribeEvent
 	public void onGui(GuiOpenEvent event) {
-		if (event.getGui() != null)
-			if (enabled && BookDisplay.contains(event.getGui()))
-				event.setCanceled(true);
-			else if (Loader.isModLoaded("mantle"))
+		if (event.getGui() != null) {
+			// Register mantle book
+			if (Loader.isModLoaded("mantle"))
 				MantleWrapper.register(event.getGui());
+
+			if (enabled && BookDisplay.contains(event.getGui())) {
+				if (mainhand != null)
+					mainhand.getRight().close();
+				if (offhand != null)
+					offhand.getRight().close();
+
+				mainhand = null;
+				offhand = null;
+
+				enabled = false;
+			}
+		}
 	}
 
 }
