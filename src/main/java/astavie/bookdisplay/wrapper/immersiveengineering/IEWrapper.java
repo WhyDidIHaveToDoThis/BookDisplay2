@@ -6,24 +6,22 @@ import blusunrize.immersiveengineering.api.ManualHelper;
 import blusunrize.immersiveengineering.common.items.ManualItem;
 import blusunrize.lib.manual.ManualEntry;
 import blusunrize.lib.manual.gui.ManualScreen;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.HandSide;
 
 public class IEWrapper extends BookWrapper<ManualScreen> {
 
 	private IEWrapper() {
-		super(ManualHelper.getManual().getGui(), false);
+		super(ManualHelper.getManual().getGui());
 	}
 
 	public static void register() {
-		BookDisplay.register(ManualScreen.class, item -> item.getItem() instanceof ManualItem, item -> new IEWrapper());
+		BookDisplay.register(item -> item.getItem() instanceof ManualItem, item -> new IEWrapper());
 	}
 
 	@Override
 	public void left() {
 		if (book.page > 0) {
 			book.page--;
-			initGui();
+			book.fullInit();
 		}
 	}
 
@@ -32,22 +30,8 @@ public class IEWrapper extends BookWrapper<ManualScreen> {
 		ManualEntry entry =  book.getCurrentPage();
 		if (entry != null && book.page < entry.getPageCount() - 1) {
 			book.page++;
-			initGui();
+			book.fullInit();
 		}
-	}
-
-	@Override
-	public void setSize(int width, int height, HandSide side) {
-		super.setSize(width, height, side);
-		initGui();
-	}
-
-	private void initGui() {
-		int scale = Minecraft.getInstance().gameSettings.guiScale;
-		if (Minecraft.getInstance().gameSettings.guiScale == 1)
-			Minecraft.getInstance().gameSettings.guiScale = 2;
-		book.fullInit();
-		Minecraft.getInstance().gameSettings.guiScale = scale;
 	}
 
 }

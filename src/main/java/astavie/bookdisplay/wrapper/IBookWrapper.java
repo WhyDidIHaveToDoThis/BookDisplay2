@@ -10,7 +10,11 @@ public interface IBookWrapper {
 
 	void right();
 
-	void close();
+	void onOpen();
+
+	void onTick();
+
+	void onClose();
 
 	void setSize(int width, int height, HandSide side);
 

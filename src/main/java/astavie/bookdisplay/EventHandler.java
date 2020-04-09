@@ -1,5 +1,6 @@
 package astavie.bookdisplay;
 
+import astavie.bookdisplay.wrapper.BookWrapper;
 import astavie.bookdisplay.wrapper.IBookWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -8,9 +9,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,7 +30,7 @@ public class EventHandler {
 
 	private void mainhand() {
 		if (mainhand != null)
-			mainhand.getRight().close();
+			mainhand.getRight().onClose();
 
 		PlayerEntity player = Minecraft.getInstance().player;
 		ItemStack stack = player.getHeldItemMainhand();
@@ -35,6 +39,7 @@ public class EventHandler {
 		if (wrapper != null) {
 			MainWindow size = Minecraft.getInstance().mainWindow;
 			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
+			wrapper.onOpen();
 			mainhand = Pair.of(stack, wrapper);
 		} else {
 			mainhand = null;
@@ -43,7 +48,7 @@ public class EventHandler {
 
 	private void offhand() {
 		if (offhand != null)
-			offhand.getRight().close();
+			offhand.getRight().onClose();
 
 		PlayerEntity player = Minecraft.getInstance().player;
 		ItemStack stack = player.getHeldItemOffhand();
@@ -52,6 +57,7 @@ public class EventHandler {
 		if (wrapper != null) {
 			MainWindow size = Minecraft.getInstance().mainWindow;
 			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand().opposite());
+			wrapper.onOpen();
 			offhand = Pair.of(stack, wrapper);
 		} else {
 			offhand = null;
@@ -61,21 +67,13 @@ public class EventHandler {
 	@SubscribeEvent
 	public void onKey(InputEvent.KeyInputEvent event) {
 		if (BookDisplay.key.isPressed()) {
-			if (enabled) {
-				if (mainhand != null)
-					mainhand.getRight().close();
-				if (offhand != null)
-					offhand.getRight().close();
-
-				mainhand = null;
-				offhand = null;
+			if (shouldDisplay()) {
+				disable();
 			} else {
-				mainhand();
-				offhand();
+				enable();
 			}
-			enabled = !enabled;
 		}
-		if (enabled) {
+		if (shouldDisplay()) {
 			if (BookDisplay.left.isPressed()) {
 				if (mainhand != null)
 					mainhand.getRight().left();
@@ -91,19 +89,43 @@ public class EventHandler {
 		}
 	}
 
+	private void disable() {
+		if (mainhand != null)
+			mainhand.getRight().onClose();
+		if (offhand != null)
+			offhand.getRight().onClose();
+
+		mainhand = null;
+		offhand = null;
+
+		enabled = false;
+	}
+
+	private void enable() {
+		mainhand();
+		offhand();
+
+		enabled = true;
+	}
+
 	@SubscribeEvent
 	public void onTick(TickEvent.PlayerTickEvent event) {
-		if (enabled) {
+		if (shouldDisplay()) {
 			if ((mainhand == null && !event.player.getHeldItemMainhand().isEmpty()) || (mainhand != null && !ItemStack.areItemStacksEqual(mainhand.getLeft(), event.player.getHeldItemMainhand())))
-				mainhand();
+				Minecraft.getInstance().enqueue(this::mainhand);
 			if ((offhand == null && !event.player.getHeldItemOffhand().isEmpty()) || (offhand != null && !ItemStack.areItemStacksEqual(offhand.getLeft(), event.player.getHeldItemOffhand())))
-				offhand();
+				Minecraft.getInstance().enqueue(this::offhand);
+
+			if (mainhand != null)
+				mainhand.getRight().onTick();
+			if (offhand != null)
+				offhand.getRight().onTick();
 		}
 	}
 
 	@SubscribeEvent
 	public void onOverlay(RenderGameOverlayEvent.Post event) {
-		if (event.getType() == RenderGameOverlayEvent.ElementType.ALL && enabled) {
+		if (event.getType() == RenderGameOverlayEvent.ElementType.ALL && shouldDisplay()) {
 			MainWindow size = Minecraft.getInstance().mainWindow;
 			PlayerEntity player = Minecraft.getInstance().player;
 			if (mainhand != null) {
@@ -126,24 +148,25 @@ public class EventHandler {
 	}
 
 	@SubscribeEvent
-	public void onGui(GuiOpenEvent event) {
-		if (event.getGui() != null) {
-			// Register mantle book
-			if (ModList.get().isLoaded("mantle"))
-				MantleWrapper.register(event.getGui());
+	public void onDrawBackground(GuiScreenEvent.BackgroundDrawnEvent event) {
+		BookWrapper.onDrawBackground();
+	}
 
-			if (enabled && BookDisplay.contains(event.getGui())) {
-				if (mainhand != null)
-					mainhand.getRight().close();
-				if (offhand != null)
-					offhand.getRight().close();
+	private boolean shouldDisplay() {
+		return enabled;
+	}
 
-				mainhand = null;
-				offhand = null;
-
-				enabled = false;
-			}
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void onUseItem(PlayerInteractEvent.RightClickItem event) {
+		if (shouldDisplay() && BookDisplay.has(event.getItemStack())) {
+			disable();
 		}
+	}
+
+	@SubscribeEvent
+	public void onGui(GuiOpenEvent event) {
+		if (event.getGui() != null && ModList.get().isLoaded("mantle"))
+			MantleWrapper.register(event.getGui());
 	}
 
 }

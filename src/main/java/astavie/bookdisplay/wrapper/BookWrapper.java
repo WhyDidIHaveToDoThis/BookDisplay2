@@ -5,33 +5,48 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.HandSide;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-
-import java.lang.reflect.Method;
 
 public class BookWrapper<T extends Screen> implements IBookWrapper {
 
-	public static final Method initGui = ObfuscationReflectionHelper.findMethod(Screen.class, "init");
+	private static BookWrapper drawing = null;
 
 	protected final T book;
-	private final boolean init;
+	private final boolean drawsBackground;
 
 	protected int width;
 	protected int height;
 
-	public BookWrapper(T book, boolean init) {
+	public BookWrapper(T book, boolean drawsBackground) {
 		this.book = book;
-		this.book.minecraft = Minecraft.getInstance();
-		this.book.itemRenderer = Minecraft.getInstance().getItemRenderer();
-		this.book.font = Minecraft.getInstance().fontRenderer;
-		this.init = init;
+		this.drawsBackground = drawsBackground;
+	}
+
+	public BookWrapper(T book) {
+		this(book, false);
+	}
+
+	public static void onDrawBackground() {
+		if (drawing != null) {
+			GlStateManager.translatef(0, -drawing.height, 0);
+		}
 	}
 
 	@Override
 	public void draw(HandSide side, float partialTicks) {
-		if (side == HandSide.RIGHT)
-			GlStateManager.translatef(width, 0, 0);
-		book.render(0, 0, partialTicks);
+		GlStateManager.translatef(width / (side == HandSide.RIGHT ? 4 : -4), 0, 0);
+
+		if (drawsBackground) {
+			// We translate down so the grey background gets lost
+			drawing = this;
+
+			GlStateManager.translatef(0, height, 0);
+			book.render(0, 0, partialTicks);
+
+			drawing = null;
+		} else {
+			// We don't do anything special
+			book.render(0, 0, partialTicks);
+		}
 	}
 
 	@Override
@@ -43,21 +58,33 @@ public class BookWrapper<T extends Screen> implements IBookWrapper {
 	}
 
 	@Override
-	public void close() {
+	public void onOpen() {
+	}
+
+	@Override
+	public void onTick() {
+		book.tick();
+	}
+
+	@Override
+	public void onClose() {
 		book.charTyped('\033', 1);
 		book.onClose();
 	}
 
 	@Override
 	public void setSize(int width, int height, HandSide side) {
-		this.width = width / 2;
+		this.width = width;
 		this.height = height;
-		book.setSize(this.width, this.height);
-		if (init) {
-			book.init(Minecraft.getInstance(), this.width, this.height);
-			for (Widget widget : book.buttons)
-				widget.visible = false;
-		}
+
+		book.init(Minecraft.getInstance(), width, height);
+		for (Widget button : book.buttons)
+			if (makeButtonInvisible(button))
+				button.visible = false;
+	}
+
+	protected boolean makeButtonInvisible(Widget button) {
+		return false;
 	}
 
 }

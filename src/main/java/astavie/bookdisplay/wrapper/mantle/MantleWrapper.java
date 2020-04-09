@@ -16,7 +16,7 @@ public class MantleWrapper extends BookWrapper<GuiMantleBook> {
 	private static final Map<ItemStack, BookData> registry = new HashMap<>();
 
 	private MantleWrapper(ItemStack stack) {
-		super(new GuiMantleBook(get(stack), stack), false);
+		super(new GuiMantleBook(get(stack), stack));
 	}
 
 	private static BookData get(ItemStack stack) {
@@ -27,7 +27,7 @@ public class MantleWrapper extends BookWrapper<GuiMantleBook> {
 	}
 
 	public static void register() {
-		BookDisplay.register(BookScreen.class, item -> get(item) != null, MantleWrapper::new);
+		BookDisplay.register(item -> get(item) != null, MantleWrapper::new);
 	}
 
 	public static void register(Screen screen) {
