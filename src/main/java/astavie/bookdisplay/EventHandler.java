@@ -2,17 +2,17 @@ package astavie.bookdisplay;
 
 import astavie.bookdisplay.wrapper.IBookWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class EventHandler {
@@ -28,12 +28,12 @@ public class EventHandler {
 		if (mainhand != null)
 			mainhand.getRight().close();
 
-		EntityPlayer player = Minecraft.getMinecraft().player;
+		PlayerEntity player = Minecraft.getInstance().player;
 		ItemStack stack = player.getHeldItemMainhand();
 		IBookWrapper wrapper = BookDisplay.find(stack);
 
 		if (wrapper != null) {
-			ScaledResolution size = new ScaledResolution(Minecraft.getMinecraft());
+			MainWindow size = Minecraft.getInstance().mainWindow;
 			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
 			mainhand = Pair.of(stack, wrapper);
 		} else {
@@ -45,12 +45,12 @@ public class EventHandler {
 		if (offhand != null)
 			offhand.getRight().close();
 
-		EntityPlayer player = Minecraft.getMinecraft().player;
+		PlayerEntity player = Minecraft.getInstance().player;
 		ItemStack stack = player.getHeldItemOffhand();
 		IBookWrapper wrapper = BookDisplay.find(stack);
 
 		if (wrapper != null) {
-			ScaledResolution size = new ScaledResolution(Minecraft.getMinecraft());
+			MainWindow size = Minecraft.getInstance().mainWindow;
 			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand().opposite());
 			offhand = Pair.of(stack, wrapper);
 		} else {
@@ -104,8 +104,8 @@ public class EventHandler {
 	@SubscribeEvent
 	public void onOverlay(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == RenderGameOverlayEvent.ElementType.ALL && enabled) {
-			ScaledResolution size = new ScaledResolution(Minecraft.getMinecraft());
-			EntityPlayer player = Minecraft.getMinecraft().player;
+			MainWindow size = Minecraft.getInstance().mainWindow;
+			PlayerEntity player = Minecraft.getInstance().player;
 			if (mainhand != null) {
 				GlStateManager.pushMatrix();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
@@ -129,7 +129,7 @@ public class EventHandler {
 	public void onGui(GuiOpenEvent event) {
 		if (event.getGui() != null) {
 			// Register mantle book
-			if (Loader.isModLoaded("mantle"))
+			if (ModList.get().isLoaded("mantle"))
 				MantleWrapper.register(event.getGui());
 
 			if (enabled && BookDisplay.contains(event.getGui())) {

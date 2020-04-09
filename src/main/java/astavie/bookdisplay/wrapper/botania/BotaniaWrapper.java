@@ -1,57 +1,26 @@
 package astavie.bookdisplay.wrapper.botania;
 
 import astavie.bookdisplay.BookDisplay;
-import astavie.bookdisplay.wrapper.BookWrapper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.EnumHandSide;
-import vazkii.botania.client.core.handler.PersistentVariableHelper;
-import vazkii.botania.client.gui.lexicon.GuiLexicon;
-import vazkii.botania.client.gui.lexicon.GuiLexiconEntry;
+import astavie.bookdisplay.wrapper.patchouli.PatchouliWrapper;
 import vazkii.botania.common.item.ItemLexicon;
+import vazkii.patchouli.client.book.gui.GuiBook;
+import vazkii.patchouli.common.book.Book;
 
-public class BotaniaWrapper extends BookWrapper<GuiLexicon> {
-
-	private BotaniaWrapper() {
-		super(GuiLexicon.currentOpenLexicon, false);
-	}
+public class BotaniaWrapper {
 
 	public static void register() {
-		BookDisplay.register(GuiLexicon.class, item -> item.getItem() instanceof ItemLexicon, item -> new BotaniaWrapper());
-	}
+		BookDisplay.register(GuiBook.class, item -> item.getItem() instanceof ItemLexicon, item -> {
+			Book book = ItemLexicon.getBook();
+			if (book != null) {
+				if (!book.contents.getCurrentGui().canBeOpened()) {
+					book.contents.currentGui = null;
+					book.contents.guiStack.clear();
+				}
 
-	@Override
-	public void left() {
-		if (book instanceof GuiLexiconEntry) {
-			GuiLexiconEntry entry = (GuiLexiconEntry) book;
-			if (entry.page > 0) {
-				entry.getEntry().pages.get(entry.page).onClosed(entry);
-				entry.page--;
-				entry.getEntry().pages.get(entry.page).onOpened(entry);
+				return new PatchouliWrapper(book.contents.getCurrentGui());
 			}
-		}
-	}
-
-	@Override
-	public void right() {
-		if (book instanceof GuiLexiconEntry) {
-			GuiLexiconEntry entry = (GuiLexiconEntry) book;
-			if (entry.page < entry.getEntry().pages.size() - 1) {
-				entry.getEntry().pages.get(entry.page).onClosed(entry);
-				entry.page++;
-				entry.getEntry().pages.get(entry.page).onOpened(entry);
-			}
-		}
-	}
-
-	@Override
-	public void setSize(int width, int height, EnumHandSide side) {
-		super.setSize(width, height, side);
-		int scale = Minecraft.getMinecraft().gameSettings.guiScale;
-		int persistentScale = Math.min(PersistentVariableHelper.lexiconGuiScale, GuiLexicon.getMaxAllowedScale());
-		if (persistentScale > 0 && persistentScale != Minecraft.getMinecraft().gameSettings.guiScale)
-			Minecraft.getMinecraft().gameSettings.guiScale = persistentScale;
-		book.initGui();
-		Minecraft.getMinecraft().gameSettings.guiScale = scale;
+			return null;
+		});
 	}
 
 }

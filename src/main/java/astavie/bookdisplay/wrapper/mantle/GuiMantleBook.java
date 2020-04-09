@@ -1,9 +1,10 @@
 package astavie.bookdisplay.wrapper.mantle;
 
 import astavie.bookdisplay.Reference;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.chat.NarratorChatListener;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.item.ItemStack;
@@ -12,12 +13,12 @@ import slimeknights.mantle.client.book.BookHelper;
 import slimeknights.mantle.client.book.BookLoader;
 import slimeknights.mantle.client.book.data.BookData;
 import slimeknights.mantle.client.book.data.PageData;
-import slimeknights.mantle.client.gui.book.GuiBook;
-import slimeknights.mantle.client.gui.book.element.BookElement;
+import slimeknights.mantle.client.screen.book.BookScreen;
+import slimeknights.mantle.client.screen.book.element.BookElement;
 
 import java.util.ArrayList;
 
-public class GuiMantleBook extends GuiScreen {
+public class GuiMantleBook extends Screen {
 
 	private static final ResourceLocation TEX_BOOK = new ResourceLocation(Reference.MOD_ID, "textures/gui/book.png");
 	private static final int PAGE_WIDTH_UNSCALED = 214;
@@ -34,14 +35,15 @@ public class GuiMantleBook extends GuiScreen {
 	private final BookData book;
 	private final ArrayList<BookElement> elements = new ArrayList<>();
 
-	private final GuiBook gui;
+	private final BookScreen gui;
 	private final ItemStack item;
 
 	private int page;
 
 	public GuiMantleBook(BookData book, ItemStack item) {
+		super(NarratorChatListener.field_216868_a);
 		this.book = book;
-		this.gui = new GuiBook(book, item);
+		this.gui = new BookScreen(NarratorChatListener.field_216868_a, book, item);
 		this.item = item;
 		this.page = book.findPageNumber(BookHelper.getSavedPage(item), gui.advancementCache);
 		if (page < 0)
@@ -51,56 +53,56 @@ public class GuiMantleBook extends GuiScreen {
 
 	@Override
 	@SuppressWarnings("ForLoopReplaceableByForEach")
-	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+	public void render(int mouseX, int mouseY, float partialTicks) {
 		FontRenderer fontRenderer = book.fontRenderer;
 		if (fontRenderer == null)
-			fontRenderer = mc.fontRenderer;
+			fontRenderer = minecraft.fontRenderer;
 
-		GlStateManager.enableAlpha();
+		GlStateManager.enableAlphaTest();
 		GlStateManager.enableBlend();
 
 		GlStateManager.pushMatrix();
-		GlStateManager.color(1F, 1F, 1F);
+		GlStateManager.color3f(1F, 1F, 1F);
 
 		float coverR = ((book.appearance.coverColor >> 16) & 0xff) / 255.F;
 		float coverG = ((book.appearance.coverColor >> 8) & 0xff) / 255.F;
 		float coverB = (book.appearance.coverColor & 0xff) / 255.F;
 
-		TextureManager render = this.mc.renderEngine;
+		TextureManager render = minecraft.textureManager;
 
 		render.bindTexture(TEX_BOOK);
 		RenderHelper.disableStandardItemLighting();
 
-		GlStateManager.color(coverR, coverG, coverB);
-		drawModalRectWithCustomSizedTexture(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
+		GlStateManager.color3f(coverR, coverG, coverB);
+		blit(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
 
-		GlStateManager.color(1F, 1F, 1F);
+		GlStateManager.color3f(1F, 1F, 1F);
 
-		drawModalRectWithCustomSizedTexture(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
+		blit(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
 
 		GlStateManager.pushMatrix();
-		GlStateManager.translate(width / 2 - PAGE_WIDTH_UNSCALED / 2 + PAGE_MARGIN * 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
+		GlStateManager.translatef(width / 2 - PAGE_WIDTH_UNSCALED / 2 + PAGE_MARGIN * 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
 
 		if (book.appearance.drawPageNumbers)
-			fontRenderer.drawString(page + 1 + "", PAGE_WIDTH / 2 - fontRenderer.getStringWidth(page + 1 + "") / 2, PAGE_HEIGHT - 10, 0xFFAAAAAA, false);
+			fontRenderer.drawString(page + 1 + "", PAGE_WIDTH / 2 - fontRenderer.getStringWidth(page + 1 + "") / 2, PAGE_HEIGHT - 10, 0xFFAAAAAA);
 
 		for (int i = 0; i < elements.size(); i++) {
 			BookElement element = elements.get(i);
 
-			GlStateManager.color(1F, 1F, 1F, 1F);
+			GlStateManager.color4f(1F, 1F, 1F, 1F);
 			element.draw(0, 0, partialTicks, fontRenderer);
 		}
 
 		for (int i = 0; i < elements.size(); i++) {
 			BookElement element = elements.get(i);
 
-			GlStateManager.color(1F, 1F, 1F, 1F);
+			GlStateManager.color4f(1F, 1F, 1F, 1F);
 			element.drawOverlay(0, 0, partialTicks, fontRenderer);
 		}
 
 		GlStateManager.popMatrix();
 
-		super.drawScreen(mouseX, mouseY, partialTicks);
+		super.render(mouseX, mouseY, partialTicks);
 
 		GlStateManager.popMatrix();
 	}
@@ -127,10 +129,10 @@ public class GuiMantleBook extends GuiScreen {
 	}
 
 	@Override
-	public void onGuiClosed() {
+	public void onClose() {
 		PageData page = book.findPage(this.page - 1, gui.advancementCache);
 		if (page != null && page.parent != null)
-			BookLoader.updateSavedPage(mc.player, item, page.parent.name + "." + page.name);
+			BookLoader.updateSavedPage(minecraft.player, item, page.parent.name + "." + page.name);
 	}
 
 }

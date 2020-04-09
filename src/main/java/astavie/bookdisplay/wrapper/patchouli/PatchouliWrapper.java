@@ -2,15 +2,12 @@ package astavie.bookdisplay.wrapper.patchouli;
 
 import astavie.bookdisplay.BookDisplay;
 import astavie.bookdisplay.wrapper.BookWrapper;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.util.HandSide;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
-import org.lwjgl.input.Mouse;
-import vazkii.botania.client.core.handler.PersistentVariableHelper;
-import vazkii.botania.client.gui.lexicon.GuiLexicon;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import vazkii.patchouli.api.BookDrawScreenEvent;
 import vazkii.patchouli.client.base.PersistentData;
 import vazkii.patchouli.client.book.gui.GuiBook;
@@ -22,11 +19,11 @@ import java.lang.reflect.Method;
 
 public class PatchouliWrapper extends BookWrapper<GuiBook> {
 
-	private static final Method resetTooltip = ReflectionHelper.findMethod(GuiBook.class, "resetTooltip", null);
-	private static final Method drawBackgroundElements = ReflectionHelper.findMethod(GuiBook.class, "drawBackgroundElements", null, int.class, int.class, float.class);
-	private static final Method drawForegroundElements = ReflectionHelper.findMethod(GuiBook.class, "drawForegroundElements", null, int.class, int.class, float.class);
-	private static final Method drawTooltip = ReflectionHelper.findMethod(GuiBook.class, "drawTooltip", null, int.class, int.class);
-	private static final Method changePage = ReflectionHelper.findMethod(GuiBook.class, "changePage", null, boolean.class, boolean.class);
+	private static final Method resetTooltip = ObfuscationReflectionHelper.findMethod(GuiBook.class, "resetTooltip");
+	private static final Method drawBackgroundElements = ObfuscationReflectionHelper.findMethod(GuiBook.class, "drawBackgroundElements", int.class, int.class, float.class);
+	private static final Method drawForegroundElements = ObfuscationReflectionHelper.findMethod(GuiBook.class, "drawForegroundElements", int.class, int.class, float.class);
+	private static final Method drawTooltip = ObfuscationReflectionHelper.findMethod(GuiBook.class, "drawTooltip", int.class, int.class);
+	private static final Method changePage = ObfuscationReflectionHelper.findMethod(GuiBook.class, "changePage", boolean.class, boolean.class);
 
 	public PatchouliWrapper(GuiBook book) {
 		super(book, false);
@@ -48,28 +45,37 @@ public class PatchouliWrapper extends BookWrapper<GuiBook> {
 	}
 
 	@Override
-	public void draw(EnumHandSide side, float partialTicks) {
-		if (side == EnumHandSide.RIGHT)
-			GlStateManager.translate(width, 0, 0);
+	public void draw(HandSide side, float partialTicks) {
+		if (side == HandSide.RIGHT)
+			GlStateManager.translatef(width, 0, 0);
 
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		int mouseX = 0;
 		int mouseY = 0;
 
 		// Copy code so we can remove the grey background
-		ScaledResolution res = new ScaledResolution(mc);
-		int guiScale = mc.gameSettings.guiScale;
+		MainWindow res = mc.mainWindow;
+		double oldGuiScale = (double)res.calcGuiScale(mc.gameSettings.guiScale, mc.getForceUnicodeFont());
+		int maxScale = mc.mainWindow.calcGuiScale(0, mc.getForceUnicodeFont());
+		int persistentScale = Math.min(PersistentData.data.bookGuiScale, maxScale);
+		double newGuiScale = (double)res.calcGuiScale(persistentScale, mc.getForceUnicodeFont());
+
+		float scaleFactor;
+		if (persistentScale > 0 && newGuiScale != oldGuiScale) {
+			scaleFactor = (float)newGuiScale / (float)res.getGuiScaleFactor();
+			res.setGuiScale(newGuiScale);
+			this.width = res.getScaledWidth();
+			this.height = res.getScaledHeight();
+			res.setGuiScale(oldGuiScale);
+		} else {
+			scaleFactor = 1.0F;
+		}
+
 		GlStateManager.pushMatrix();
-		int persistentScale = Math.min(PersistentData.data.bookGuiScale, book.maxScale);
-		if (persistentScale > 0 && persistentScale != guiScale) {
-			mc.gameSettings.guiScale = persistentScale;
-			float s = (float) persistentScale / (float) res.getScaleFactor();
-			GlStateManager.scale(s, s, s);
-			res = new ScaledResolution(mc);
-			int sw = res.getScaledWidth();
-			int sh = res.getScaledHeight();
-			mouseX = Mouse.getX() * sw / mc.displayWidth;
-			mouseY = sh - Mouse.getY() * sh / mc.displayHeight - 1;
+		if (scaleFactor != 1.0F) {
+			GlStateManager.scalef(scaleFactor, scaleFactor, scaleFactor);
+			mouseX = (int)((float)mouseX / scaleFactor);
+			mouseY = (int)((float)mouseY / scaleFactor);
 		}
 
 		try {
@@ -77,29 +83,21 @@ public class PatchouliWrapper extends BookWrapper<GuiBook> {
 		} catch (InvocationTargetException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
-
-		mc.gameSettings.guiScale = guiScale;
 		GlStateManager.popMatrix();
 	}
 
 	private void drawScreenAfterScale(int mouseX, int mouseY, float partialTicks) throws InvocationTargetException, IllegalAccessException {
 		resetTooltip.invoke(book);
-		// book.drawDefaultBackground();
+		// book.drawBackground();
 		GlStateManager.pushMatrix();
-		GlStateManager.translate((float) book.bookLeft, (float) book.bookTop, 0.0F);
-		GlStateManager.color(1.0F, 1.0F, 1.0F);
+		GlStateManager.translatef((float) book.bookLeft, (float) book.bookTop, 0.0F);
+		GlStateManager.color3f(1.0F, 1.0F, 1.0F);
 		drawBackgroundElements.invoke(book, mouseX, mouseY, partialTicks);
 		drawForegroundElements.invoke(book, mouseX, mouseY, partialTicks);
 		GlStateManager.popMatrix();
 
-		Minecraft mc = Minecraft.getMinecraft();
-
-		for (int i = 0; i < book.buttonList.size(); ++i) {
-			book.buttonList.get(i).drawButton(mc, mouseX, mouseY, partialTicks);
-		}
-
-		for (int j = 0; j < book.labelList.size(); ++j) {
-			book.labelList.get(j).drawLabel(mc, mouseX, mouseY);
+		for(int i = 0; i < book.buttons.size(); ++i) {
+			book.buttons.get(i).render(mouseX, mouseY, partialTicks);
 		}
 
 		MinecraftForge.EVENT_BUS.post(new BookDrawScreenEvent(book, book.book.resourceLoc, mouseX, mouseY, partialTicks));
@@ -125,14 +123,14 @@ public class PatchouliWrapper extends BookWrapper<GuiBook> {
 	}
 
 	@Override
-	public void setSize(int width, int height, EnumHandSide side) {
+	public void setSize(int width, int height, HandSide side) {
 		super.setSize(width, height, side);
-		int scale = Minecraft.getMinecraft().gameSettings.guiScale;
-		int persistentScale = Math.min(PersistentVariableHelper.lexiconGuiScale, GuiLexicon.getMaxAllowedScale());
-		if (persistentScale > 0 && persistentScale != Minecraft.getMinecraft().gameSettings.guiScale)
-			Minecraft.getMinecraft().gameSettings.guiScale = persistentScale;
-		book.initGui();
-		Minecraft.getMinecraft().gameSettings.guiScale = scale;
+		int scale = Minecraft.getInstance().gameSettings.guiScale;
+		int persistentScale = Math.min(PersistentData.data.bookGuiScale, book.maxScale);
+		if (persistentScale > 0 && persistentScale != Minecraft.getInstance().gameSettings.guiScale)
+			Minecraft.getInstance().gameSettings.guiScale = persistentScale;
+		book.init(Minecraft.getInstance(), this.width, this.height);
+		Minecraft.getInstance().gameSettings.guiScale = scale;
 	}
 
 }

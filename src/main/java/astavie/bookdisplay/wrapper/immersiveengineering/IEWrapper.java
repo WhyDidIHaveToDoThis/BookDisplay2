@@ -2,23 +2,21 @@ package astavie.bookdisplay.wrapper.immersiveengineering;
 
 import astavie.bookdisplay.BookDisplay;
 import astavie.bookdisplay.wrapper.BookWrapper;
-import blusunrize.immersiveengineering.api.Lib;
 import blusunrize.immersiveengineering.api.ManualHelper;
-import blusunrize.immersiveengineering.common.items.IEItemInterfaces;
-import blusunrize.lib.manual.ManualInstance;
-import blusunrize.lib.manual.gui.GuiManual;
+import blusunrize.immersiveengineering.common.items.ManualItem;
+import blusunrize.lib.manual.ManualEntry;
+import blusunrize.lib.manual.gui.ManualScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.util.HandSide;
 
-public class IEWrapper extends BookWrapper<GuiManual> {
+public class IEWrapper extends BookWrapper<ManualScreen> {
 
 	private IEWrapper() {
 		super(ManualHelper.getManual().getGui(), false);
 	}
 
 	public static void register() {
-		BookDisplay.register(GuiManual.class, item -> item.getItem() instanceof IEItemInterfaces.IGuiItem && ((IEItemInterfaces.IGuiItem) item.getItem()).getGuiID(item) == Lib.GUIID_Manual, item -> new IEWrapper());
+		BookDisplay.register(ManualScreen.class, item -> item.getItem() instanceof ManualItem, item -> new IEWrapper());
 	}
 
 	@Override
@@ -31,27 +29,25 @@ public class IEWrapper extends BookWrapper<GuiManual> {
 
 	@Override
 	public void right() {
-		ManualInstance.ManualEntry entry = book.getManual().getEntry(book.getSelectedEntry());
-		if (entry != null && book.page < entry.getPages().length - 1) {
+		ManualEntry entry =  book.getCurrentPage();
+		if (entry != null && book.page < entry.getPageCount() - 1) {
 			book.page++;
 			initGui();
 		}
 	}
 
 	@Override
-	public void setSize(int width, int height, EnumHandSide side) {
+	public void setSize(int width, int height, HandSide side) {
 		super.setSize(width, height, side);
 		initGui();
 	}
 
 	private void initGui() {
-		int scale = Minecraft.getMinecraft().gameSettings.guiScale;
-		if (Minecraft.getMinecraft().gameSettings.guiScale == 1)
-			Minecraft.getMinecraft().gameSettings.guiScale = 2;
-		book.initGui();
-		Minecraft.getMinecraft().gameSettings.guiScale = scale;
-		for (GuiButton button : book.buttonList)
-			button.visible = false;
+		int scale = Minecraft.getInstance().gameSettings.guiScale;
+		if (Minecraft.getInstance().gameSettings.guiScale == 1)
+			Minecraft.getInstance().gameSettings.guiScale = 2;
+		book.fullInit();
+		Minecraft.getInstance().gameSettings.guiScale = scale;
 	}
 
 }

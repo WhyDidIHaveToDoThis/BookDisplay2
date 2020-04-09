@@ -1,26 +1,29 @@
 package astavie.bookdisplay;
 
 import astavie.bookdisplay.wrapper.IBookWrapper;
-import astavie.bookdisplay.wrapper.bibliocraft.BiblioCraftWrapper;
 import astavie.bookdisplay.wrapper.botania.BotaniaWrapper;
 import astavie.bookdisplay.wrapper.immersiveengineering.IEWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
 import astavie.bookdisplay.wrapper.minecraft.VanillaWrapper;
-import astavie.bookdisplay.wrapper.opencomputers.OCWrapper;
 import astavie.bookdisplay.wrapper.patchouli.PatchouliWrapper;
-import astavie.bookdisplay.wrapper.tis3d.TIS3DWrapper;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiScreenBook;
+import net.minecraft.client.gui.screen.EditBookScreen;
+import net.minecraft.client.gui.screen.ReadBookScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import org.lwjgl.input.Keyboard;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.FMLNetworkConstants;
+import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,17 +32,17 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, clientSideOnly = true)
+@Mod(Reference.MOD_ID)
 public class BookDisplay {
 
-	static final KeyBinding key = new KeyBinding("key.bookdisplay.display", Keyboard.KEY_R, "key.categories.book");
-	static final KeyBinding left = new KeyBinding("key.bookdisplay.left", Keyboard.KEY_LEFT, "key.categories.book");
-	static final KeyBinding right = new KeyBinding("key.bookdisplay.right", Keyboard.KEY_RIGHT, "key.categories.book");
+	static final KeyBinding key = new KeyBinding("key.bookdisplay.display", GLFW.GLFW_KEY_R, "key.categories.book");
+	static final KeyBinding left = new KeyBinding("key.bookdisplay.left", GLFW.GLFW_KEY_LEFT, "key.categories.book");
+	static final KeyBinding right = new KeyBinding("key.bookdisplay.right", GLFW.GLFW_KEY_RIGHT, "key.categories.book");
 
-	private static final Set<Class<? extends GuiScreen>> books = new HashSet<>();
+	private static final Set<Class<? extends Screen>> books = new HashSet<>();
 	private static final Map<Predicate<ItemStack>, Function<ItemStack, IBookWrapper>> registry = new HashMap<>();
 
-	public static void register(Class<? extends GuiScreen> type, Predicate<ItemStack> predicate, Function<ItemStack, IBookWrapper> factory) {
+	public static void register(Class<? extends Screen> type, Predicate<ItemStack> predicate, Function<ItemStack, IBookWrapper> factory) {
 		books.add(type);
 		registry.put(predicate, factory);
 	}
@@ -53,7 +56,7 @@ public class BookDisplay {
 		return null;
 	}
 
-	static boolean contains(GuiScreen book) {
+	static boolean contains(Screen book) {
 		if (books.contains(book.getClass()))
 			return true;
 		for (Class<?> clazz : books)
@@ -62,8 +65,15 @@ public class BookDisplay {
 		return false;
 	}
 
-	@Mod.EventHandler
-	public void init(FMLInitializationEvent event) {
+	public BookDisplay() {
+		// Make sure the mod being absent on the other network side does not cause the client to display the server as incompatible
+		ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
+
+		// Add init method to event bus
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::init);
+	}
+
+	public void init(final FMLClientSetupEvent event) {
 		key.setKeyConflictContext(KeyConflictContext.IN_GAME);
 		left.setKeyConflictContext(KeyConflictContext.IN_GAME);
 		right.setKeyConflictContext(KeyConflictContext.IN_GAME);
@@ -74,21 +84,22 @@ public class BookDisplay {
 
 		MinecraftForge.EVENT_BUS.register(new EventHandler());
 
-		register(GuiScreenBook.class, item -> item.getItem() == Items.WRITABLE_BOOK || item.getItem() == Items.WRITTEN_BOOK, VanillaWrapper::new);
+		register(ReadBookScreen.class, item -> item.getItem() == Items.WRITABLE_BOOK || item.getItem() == Items.WRITTEN_BOOK, VanillaWrapper::new);
+		books.add(EditBookScreen.class);
 
-		if (Loader.isModLoaded("bibliocraft"))
-			BiblioCraftWrapper.register();
-		if (Loader.isModLoaded("botania"))
-			BotaniaWrapper.register();
-		if (Loader.isModLoaded("immersiveengineering"))
+		// if (ModList.get().isLoaded("bibliocraft"))
+			// BiblioCraftWrapper.register();
+		if (ModList.get().isLoaded("immersiveengineering"))
 			IEWrapper.register();
-		if (Loader.isModLoaded("mantle"))
+		if (ModList.get().isLoaded("mantle"))
 			MantleWrapper.register();
-		if (Loader.isModLoaded("opencomputers"))
-			OCWrapper.register();
-		if (Loader.isModLoaded("tis3d"))
-			TIS3DWrapper.register();
-		if (Loader.isModLoaded("patchouli"))
+		// if (ModList.get().isLoaded("opencomputers"))
+			// OCWrapper.register();
+		// if (ModList.get().isLoaded("tis3d"))
+			// TIS3DWrapper.register();
+		if (ModList.get().isLoaded("botania"))
+			BotaniaWrapper.register();
+		if (ModList.get().isLoaded("patchouli"))
 			PatchouliWrapper.register();
 	}
 

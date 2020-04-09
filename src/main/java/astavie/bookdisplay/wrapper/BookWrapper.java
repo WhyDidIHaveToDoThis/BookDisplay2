@@ -1,18 +1,17 @@
 package astavie.bookdisplay.wrapper;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.EnumHandSide;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.util.HandSide;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class BookWrapper<T extends GuiScreen> implements IBookWrapper {
+public class BookWrapper<T extends Screen> implements IBookWrapper {
 
-	private static final Method keyTyped = ReflectionHelper.findMethod(GuiScreen.class, "keyTyped", "func_73869_a", char.class, int.class);
+	public static final Method initGui = ObfuscationReflectionHelper.findMethod(Screen.class, "init");
 
 	protected final T book;
 	private final boolean init;
@@ -22,17 +21,17 @@ public class BookWrapper<T extends GuiScreen> implements IBookWrapper {
 
 	public BookWrapper(T book, boolean init) {
 		this.book = book;
-		this.book.mc = Minecraft.getMinecraft();
-		this.book.itemRender = Minecraft.getMinecraft().getRenderItem();
-		this.book.fontRenderer = Minecraft.getMinecraft().fontRenderer;
+		this.book.minecraft = Minecraft.getInstance();
+		this.book.itemRenderer = Minecraft.getInstance().getItemRenderer();
+		this.book.font = Minecraft.getInstance().fontRenderer;
 		this.init = init;
 	}
 
 	@Override
-	public void draw(EnumHandSide side, float partialTicks) {
-		if (side == EnumHandSide.RIGHT)
-			GlStateManager.translate(width, 0, 0);
-		book.drawScreen(0, 0, partialTicks);
+	public void draw(HandSide side, float partialTicks) {
+		if (side == HandSide.RIGHT)
+			GlStateManager.translatef(width, 0, 0);
+		book.render(0, 0, partialTicks);
 	}
 
 	@Override
@@ -45,23 +44,19 @@ public class BookWrapper<T extends GuiScreen> implements IBookWrapper {
 
 	@Override
 	public void close() {
-		try {
-			keyTyped.invoke(book, '\033', 1);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		book.onGuiClosed();
+		book.charTyped('\033', 1);
+		book.onClose();
 	}
 
 	@Override
-	public void setSize(int width, int height, EnumHandSide side) {
+	public void setSize(int width, int height, HandSide side) {
 		this.width = width / 2;
 		this.height = height;
-		book.setGuiSize(this.width, this.height);
+		book.setSize(this.width, this.height);
 		if (init) {
-			book.initGui();
-			for (GuiButton button : book.buttonList)
-				button.visible = false;
+			book.init(Minecraft.getInstance(), this.width, this.height);
+			for (Widget widget : book.buttons)
+				widget.visible = false;
 		}
 	}
 

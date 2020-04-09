@@ -1,10 +1,10 @@
 package astavie.bookdisplay.wrapper;
 
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.util.HandSide;
 
 public interface IBookWrapper {
 
-	void draw(EnumHandSide side, float partialTicks);
+	void draw(HandSide side, float partialTicks);
 
 	void left();
 
@@ -12,6 +12,6 @@ public interface IBookWrapper {
 
 	void close();
 
-	void setSize(int width, int height, EnumHandSide side);
+	void setSize(int width, int height, HandSide side);
 
 }
