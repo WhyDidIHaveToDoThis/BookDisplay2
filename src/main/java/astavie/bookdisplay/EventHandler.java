@@ -3,7 +3,8 @@ package astavie.bookdisplay;
 import astavie.bookdisplay.wrapper.BookWrapper;
 import astavie.bookdisplay.wrapper.IBookWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
@@ -37,7 +38,7 @@ public class EventHandler {
 		IBookWrapper wrapper = BookDisplay.find(stack);
 
 		if (wrapper != null) {
-			MainWindow size = Minecraft.getInstance().mainWindow;
+			MainWindow size = Minecraft.getInstance().getMainWindow();
 			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
 			wrapper.onOpen();
 			mainhand = Pair.of(stack, wrapper);
@@ -55,7 +56,7 @@ public class EventHandler {
 		IBookWrapper wrapper = BookDisplay.find(stack);
 
 		if (wrapper != null) {
-			MainWindow size = Minecraft.getInstance().mainWindow;
+			MainWindow size = Minecraft.getInstance().getMainWindow();
 			wrapper.setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand().opposite());
 			wrapper.onOpen();
 			offhand = Pair.of(stack, wrapper);
@@ -126,28 +127,28 @@ public class EventHandler {
 	@SubscribeEvent
 	public void onOverlay(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == RenderGameOverlayEvent.ElementType.ALL && shouldDisplay()) {
-			MainWindow size = Minecraft.getInstance().mainWindow;
+			MainWindow size = Minecraft.getInstance().getMainWindow();
 			PlayerEntity player = Minecraft.getInstance().player;
 			if (mainhand != null) {
-				GlStateManager.pushMatrix();
+				RenderSystem.pushMatrix();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
 					mainhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
 				mainhand.getRight().draw(player.getPrimaryHand(), event.getPartialTicks());
-				GlStateManager.popMatrix();
+				RenderSystem.popMatrix();
 			}
 			if (offhand != null) {
-				GlStateManager.pushMatrix();
+				RenderSystem.pushMatrix();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
 					offhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand().opposite());
 				offhand.getRight().draw(player.getPrimaryHand().opposite(), event.getPartialTicks());
-				GlStateManager.popMatrix();
+				RenderSystem.popMatrix();
 			}
 			cachedWidth = size.getScaledWidth();
 			cachedHeight = size.getScaledHeight();
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onDrawBackground(GuiScreenEvent.BackgroundDrawnEvent event) {
 		BookWrapper.onDrawBackground();
 	}

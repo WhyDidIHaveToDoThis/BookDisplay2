@@ -1,7 +1,8 @@
 package astavie.bookdisplay.wrapper.mantle;
 
 import astavie.bookdisplay.Reference;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.chat.NarratorChatListener;
 import net.minecraft.client.gui.screen.Screen;
@@ -41,9 +42,9 @@ public class GuiMantleBook extends Screen {
 	private int page;
 
 	public GuiMantleBook(BookData book, ItemStack item) {
-		super(NarratorChatListener.field_216868_a);
+		super(NarratorChatListener.EMPTY);
 		this.book = book;
-		this.gui = new BookScreen(NarratorChatListener.field_216868_a, book, item);
+		this.gui = new BookScreen(NarratorChatListener.EMPTY, book, item);
 		this.item = item;
 		this.page = book.findPageNumber(BookHelper.getSavedPage(item), gui.advancementCache);
 		if (page < 0)
@@ -58,11 +59,11 @@ public class GuiMantleBook extends Screen {
 		if (fontRenderer == null)
 			fontRenderer = minecraft.fontRenderer;
 
-		GlStateManager.enableAlphaTest();
-		GlStateManager.enableBlend();
+		RenderSystem.enableAlphaTest();
+		RenderSystem.enableBlend();
 
-		GlStateManager.pushMatrix();
-		GlStateManager.color3f(1F, 1F, 1F);
+		RenderSystem.pushMatrix();
+		RenderSystem.color3f(1F, 1F, 1F);
 
 		float coverR = ((book.appearance.coverColor >> 16) & 0xff) / 255.F;
 		float coverG = ((book.appearance.coverColor >> 8) & 0xff) / 255.F;
@@ -73,15 +74,15 @@ public class GuiMantleBook extends Screen {
 		render.bindTexture(TEX_BOOK);
 		RenderHelper.disableStandardItemLighting();
 
-		GlStateManager.color3f(coverR, coverG, coverB);
+		RenderSystem.color3f(coverR, coverG, coverB);
 		blit(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
 
-		GlStateManager.color3f(1F, 1F, 1F);
+		RenderSystem.color3f(1F, 1F, 1F);
 
 		blit(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
 
-		GlStateManager.pushMatrix();
-		GlStateManager.translatef(width / 2 - PAGE_WIDTH_UNSCALED / 2 + PAGE_MARGIN * 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
+		RenderSystem.pushMatrix();
+		RenderSystem.translatef(width / 2 - PAGE_WIDTH_UNSCALED / 2 + PAGE_MARGIN * 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
 
 		if (book.appearance.drawPageNumbers)
 			fontRenderer.drawString(page + 1 + "", PAGE_WIDTH / 2 - fontRenderer.getStringWidth(page + 1 + "") / 2, PAGE_HEIGHT - 10, 0xFFAAAAAA);
@@ -89,22 +90,22 @@ public class GuiMantleBook extends Screen {
 		for (int i = 0; i < elements.size(); i++) {
 			BookElement element = elements.get(i);
 
-			GlStateManager.color4f(1F, 1F, 1F, 1F);
+			RenderSystem.color4f(1F, 1F, 1F, 1F);
 			element.draw(0, 0, partialTicks, fontRenderer);
 		}
 
 		for (int i = 0; i < elements.size(); i++) {
 			BookElement element = elements.get(i);
 
-			GlStateManager.color4f(1F, 1F, 1F, 1F);
+			RenderSystem.color4f(1F, 1F, 1F, 1F);
 			element.drawOverlay(0, 0, partialTicks, fontRenderer);
 		}
 
-		GlStateManager.popMatrix();
+		RenderSystem.popMatrix();
 
 		super.render(mouseX, mouseY, partialTicks);
 
-		GlStateManager.popMatrix();
+		RenderSystem.popMatrix();
 	}
 
 	public void left() {
