@@ -1,11 +1,10 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -25,7 +24,8 @@ version = "${mc_version}-${major}.${minor}.${patch}"
 group = mod_id
 archivesBaseName = "${mod_name.replaceAll(' ','')}"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -33,7 +33,7 @@ minecraft {
     // stable_#            Stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'snapshot', version: '20200514-1.15.1'
+    mappings channel: 'snapshot', version: '20210309-1.16.5'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
     
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -49,6 +49,9 @@ minecraft {
 
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 bookdisplay {
@@ -94,9 +97,9 @@ minecraft {
 }
 
 repositories {
-    maven { url "http://dvs1.progwml6.com/files/maven" }
-    maven { url "http://maven.blamejared.com/" }
-    maven { url "http://maven.thiakil.com" }
+    maven { url "https://dvs1.progwml6.com/files/maven/" }
+    maven { url "https://maven.blamejared.com/" }
+    maven { url "http://maven.thiakil.com/" }
     maven { url "http://maven.cil.li/" }
     maven { url "https://maven.theillusivec4.top/" }
 }
@@ -111,20 +114,19 @@ dependencies {
     compile fg.deobf("slimeknights.mantle:Mantle:${mc_version}+")
     // deobfCompile "com.azanor.baubles:Baubles:1.${mc_major}+"
     
-    compile fg.deobf("blusunrize.immersiveengineering:ImmersiveEngineering:0.${mc_major}+")
+    compile fg.deobf("blusunrize.immersiveengineering:ImmersiveEngineering:${mc_version}-4.2.4+")
 
     // deobfCompile "li.cil.oc:OpenComputers:MC${mc_version}+"
     // deobfCompile "li.cil.tis3d:TIS-3D:MC${mc_version}+"
     
-    compile fg.deobf("vazkii.autoreglib:AutoRegLib:1.5+")
-    compile fg.deobf("vazkii.patchouli:Patchouli:${mc_version}+")
-
-    compile fg.deobf("vazkii.botania:Botania:r1.15-386+@jar")
+    compile fg.deobf("vazkii.autoreglib:AutoRegLib:1.6+")
+    compile fg.deobf("vazkii.patchouli:Patchouli:1.16.4+")
+    compile fg.deobf("vazkii.botania:Botania:1.16.5+")
 
     // Runtime
-    // runtime "slimeknights:TConstruct:${mc_version}+@jar"
+    runtimeOnly fg.deobf("slimeknights.tconstruct:TConstruct:${mc_version}+")
     runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:+")
-    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-${mc_version}+")
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${mc_version}+")
 }
 
 jar {

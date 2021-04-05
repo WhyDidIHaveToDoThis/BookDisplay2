@@ -1,6 +1,8 @@
 package astavie.bookdisplay.wrapper.mantle;
 
 import astavie.bookdisplay.Reference;
+
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.FontRenderer;
@@ -54,7 +56,7 @@ public class GuiMantleBook extends Screen {
 
 	@Override
 	@SuppressWarnings("ForLoopReplaceableByForEach")
-	public void render(int mouseX, int mouseY, float partialTicks) {
+	public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
 		FontRenderer fontRenderer = book.fontRenderer;
 		if (fontRenderer == null)
 			fontRenderer = minecraft.fontRenderer;
@@ -75,35 +77,39 @@ public class GuiMantleBook extends Screen {
 		RenderHelper.disableStandardItemLighting();
 
 		RenderSystem.color3f(coverR, coverG, coverB);
-		blit(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
+		blit(stack, width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0,
+				PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
 
 		RenderSystem.color3f(1F, 1F, 1F);
 
-		blit(width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
+		blit(stack, width / 2 - PAGE_WIDTH_UNSCALED / 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED,
+				PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, 512, 512);
 
 		RenderSystem.pushMatrix();
-		RenderSystem.translatef(width / 2 - PAGE_WIDTH_UNSCALED / 2 + PAGE_MARGIN * 2, height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
+		RenderSystem.translatef(width / 2 - PAGE_WIDTH_UNSCALED / 2 + PAGE_MARGIN * 2,
+				height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
 
 		if (book.appearance.drawPageNumbers)
-			fontRenderer.drawString(page + 1 + "", PAGE_WIDTH / 2 - fontRenderer.getStringWidth(page + 1 + "") / 2, PAGE_HEIGHT - 10, 0xFFAAAAAA);
+			fontRenderer.drawString(stack, page + 1 + "",
+					PAGE_WIDTH / 2 - fontRenderer.getStringWidth(page + 1 + "") / 2, PAGE_HEIGHT - 10, 0xFFAAAAAA);
 
 		for (int i = 0; i < elements.size(); i++) {
 			BookElement element = elements.get(i);
 
 			RenderSystem.color4f(1F, 1F, 1F, 1F);
-			element.draw(0, 0, partialTicks, fontRenderer);
+			element.draw(stack, 0, 0, partialTicks, fontRenderer);
 		}
 
 		for (int i = 0; i < elements.size(); i++) {
 			BookElement element = elements.get(i);
 
 			RenderSystem.color4f(1F, 1F, 1F, 1F);
-			element.drawOverlay(0, 0, partialTicks, fontRenderer);
+			element.drawOverlay(stack, 0, 0, partialTicks, fontRenderer);
 		}
 
 		RenderSystem.popMatrix();
 
-		super.render(mouseX, mouseY, partialTicks);
+		super.render(stack, mouseX, mouseY, partialTicks);
 
 		RenderSystem.popMatrix();
 	}

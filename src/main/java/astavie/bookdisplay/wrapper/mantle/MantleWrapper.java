@@ -32,7 +32,8 @@ public class MantleWrapper extends BookWrapper<GuiMantleBook> {
 
 	public static void register(Screen screen) {
 		if (screen instanceof BookScreen)
-			registry.put(ObfuscationReflectionHelper.getPrivateValue(BookScreen.class, (BookScreen) screen, "item"), ((BookScreen) screen).book);
+			registry.put(ObfuscationReflectionHelper.getPrivateValue(BookScreen.class, (BookScreen) screen, "item"),
+					((BookScreen) screen).book);
 	}
 
 	@Override

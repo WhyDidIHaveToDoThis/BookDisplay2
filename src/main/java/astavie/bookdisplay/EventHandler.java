@@ -3,7 +3,6 @@ package astavie.bookdisplay;
 import astavie.bookdisplay.wrapper.BookWrapper;
 import astavie.bookdisplay.wrapper.IBookWrapper;
 import astavie.bookdisplay.wrapper.mantle.MantleWrapper;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
@@ -134,19 +133,20 @@ public class EventHandler {
 			MainWindow size = Minecraft.getInstance().getMainWindow();
 			PlayerEntity player = Minecraft.getInstance().player;
 			if (mainhand != null) {
-				RenderSystem.pushMatrix();
+				event.getMatrixStack().push();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
 					mainhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight(), player.getPrimaryHand());
-				mainhand.getRight().draw(player.getPrimaryHand(), event.getPartialTicks());
-				RenderSystem.popMatrix();
+				mainhand.getRight().draw(event.getMatrixStack(), player.getPrimaryHand(), event.getPartialTicks());
+				event.getMatrixStack().pop();
 			}
 			if (offhand != null) {
-				RenderSystem.pushMatrix();
+				event.getMatrixStack().push();
 				if (cachedWidth != size.getScaledWidth() || cachedHeight != size.getScaledHeight())
 					offhand.getRight().setSize(size.getScaledWidth(), size.getScaledHeight(),
 							player.getPrimaryHand().opposite());
-				offhand.getRight().draw(player.getPrimaryHand().opposite(), event.getPartialTicks());
-				RenderSystem.popMatrix();
+				offhand.getRight().draw(event.getMatrixStack(), player.getPrimaryHand().opposite(),
+						event.getPartialTicks());
+				event.getMatrixStack().pop();
 			}
 			cachedWidth = size.getScaledWidth();
 			cachedHeight = size.getScaledHeight();
@@ -155,7 +155,7 @@ public class EventHandler {
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onDrawBackground(GuiScreenEvent.BackgroundDrawnEvent event) {
-		BookWrapper.onDrawBackground();
+		BookWrapper.onDrawBackground(event.getMatrixStack());
 	}
 
 	private boolean shouldDisplay() {

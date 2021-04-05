@@ -1,6 +1,7 @@
 package astavie.bookdisplay.wrapper;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.matrix.MatrixStack;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
@@ -8,7 +9,7 @@ import net.minecraft.util.HandSide;
 
 public class BookWrapper<T extends Screen> implements IBookWrapper {
 
-	private static BookWrapper drawing = null;
+	private static BookWrapper<?> drawing = null;
 
 	protected final T book;
 	private final boolean drawsBackground;
@@ -25,27 +26,27 @@ public class BookWrapper<T extends Screen> implements IBookWrapper {
 		this(book, false);
 	}
 
-	public static void onDrawBackground() {
+	public static void onDrawBackground(MatrixStack stack) {
 		if (drawing != null) {
-			GlStateManager.translatef(0, -drawing.height, 0);
+			stack.translate(0, -drawing.height, 0);
 		}
 	}
 
 	@Override
-	public void draw(HandSide side, float partialTicks) {
-		GlStateManager.translatef(width / (side == HandSide.RIGHT ? 4 : -4), 0, 0);
+	public void draw(MatrixStack stack, HandSide side, float partialTicks) {
+		stack.translate(width / (side == HandSide.RIGHT ? 4 : -4), 0, 0);
 
 		if (drawsBackground) {
 			// We translate down so the grey background gets lost
 			drawing = this;
 
-			GlStateManager.translatef(0, height, 0);
-			book.render(0, 0, partialTicks);
+			stack.translate(0, height, 0);
+			book.render(stack, 0, 0, partialTicks);
 
 			drawing = null;
 		} else {
 			// We don't do anything special
-			book.render(0, 0, partialTicks);
+			book.render(stack, 0, 0, partialTicks);
 		}
 	}
 
