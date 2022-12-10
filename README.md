@@ -1,6 +1,11 @@
 # Book Display
 Read books while moving!
 
+Make written books usable so players can touch grass.
+
+Read a book like a pamphlet or guide, use a book like a notepad.
+
+
 ## Mod Support
 Book Display natively supports:
  - Bibliocraft
